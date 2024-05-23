@@ -7,19 +7,28 @@ import java.util.PriorityQueue;
 public class Main {
     public static Map<Character, Integer> occurrences = new HashMap<>();
 
+    public static final String ENCIN = "resources/in.txt";
+    public static final String ENCHUF = "resources/dec_tab.txt";
+    public static final String ENCOUT = "resources/output.dat";
+    public static final String DECIN = "resources/output-mada.dat";
+    public static final String DECHUF = "resources/dec_tab-mada.txt";
+    public static final String DECOUT = "resources/decompress.txt";
+    
     public static void main(String[] args) {
         Encrypt();
         Decrypt();
     }
     
     public static void Encrypt(){
+        System.out.println("--- Encryption ---");
+        
         // fill map with 0s
         for(int i = 0; i < 128; i++){
             occurrences.put((char)i, 0);
         }
 
         // read file and count occurences
-        var text = IOUtility.readFile("resources/in.txt");
+        var text = IOUtility.readFile(ENCIN);
         for (var c : text.toCharArray()){
             occurrences.put(c, occurrences.get(c) + 1);
         }
@@ -58,7 +67,7 @@ public class Main {
         }
 
         // write huffman table
-        IOUtility.writeLines("resources/dec_tab.txt", huffmanCodes.entrySet().stream().map(s -> (int)s.getKey().charValue() + ":" + s.getValue()).toArray(String[]::new), "-");
+        IOUtility.writeLines(ENCHUF, huffmanCodes.entrySet().stream().map(s -> (int)s.getKey().charValue() + ":" + s.getValue()).toArray(String[]::new), "-");
 
         // encode text to bitstring
         StringBuilder bitString = new StringBuilder();
@@ -81,11 +90,52 @@ public class Main {
         }
 
         // write byte array to file
-        IOUtility.writeBytes("resources/output.dat", bytes);
+        IOUtility.writeBytes(ENCOUT, bytes);
     }
     
     public static void Decrypt(){
+        System.out.println("--- Decryption ---");
         
+        // read files
+        var bytes = IOUtility.readBytes(DECIN);
+        var huffmanTableContent = IOUtility.readFile(DECHUF);
+        var huffmanCodes = new HashMap<String, Character>();
+        
+        // fill huffman table (reverse map for lookup)
+        for (var line : huffmanTableContent.split("-")) {
+            var parts = line.split(":");
+            var character = (char) Integer.parseInt(parts[0]);
+            var code = parts[1];
+            huffmanCodes.put(code, character);            
+        }
+        
+        // convert byte array to bitstring
+        var bitString = new StringBuilder();
+        for (var b : bytes) {
+            bitString.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
+        }
+        System.out.println("Bitstring length: " + bitString.length());
+        System.out.println("Bitstring: " + bitString);
+        
+        // cleanup bitstring (remove last 1 and trailing 0s)
+        while(bitString.charAt(bitString.length() - 1) == '0'){
+            bitString.deleteCharAt(bitString.length() - 1);
+        }
+        bitString.deleteCharAt(bitString.length() - 1);
+        System.out.println("Bitstring clean: " + bitString);
+        
+        // decode bitstring
+        var decodedText = new StringBuilder();
+        var currentCode = new StringBuilder();
+        for (var c : bitString.toString().toCharArray()) {
+            currentCode.append(c);
+            if (huffmanCodes.containsKey(currentCode.toString())) {
+                decodedText.append(huffmanCodes.get(currentCode.toString()));
+                currentCode = new StringBuilder();
+            }
+        }
+        System.out.println("Decoded text: " + decodedText);
+        IOUtility.writeLines(DECOUT, new String[]{decodedText.toString()}, "");
     }
 
     private static void generateCodes(HuffmanNode node, String code, Map<Character, String> huffmanCodes) {
