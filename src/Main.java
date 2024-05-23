@@ -8,6 +8,11 @@ public class Main {
     public static Map<Character, Integer> occurrences = new HashMap<>();
 
     public static void main(String[] args) {
+        Encrypt();
+        Decrypt();
+    }
+    
+    public static void Encrypt(){
         // fill map with 0s
         for(int i = 0; i < 128; i++){
             occurrences.put((char)i, 0);
@@ -51,9 +56,9 @@ public class Main {
         for (var entry : huffmanCodes.entrySet()) {
             System.out.println(entry.getKey() + ": " + entry.getValue());
         }
-        
+
         // write huffman table
-        IOUtility.writeLines("resources/dec_tab.txt", huffmanCodes.entrySet().stream().map(s -> s.getKey() + ":" + s.getValue()).toArray(String[]::new));
+        IOUtility.writeLines("resources/dec_tab.txt", huffmanCodes.entrySet().stream().map(s -> (int)s.getKey().charValue() + ":" + s.getValue()).toArray(String[]::new), "-");
 
         // encode text to bitstring
         StringBuilder bitString = new StringBuilder();
@@ -68,6 +73,19 @@ public class Main {
         }
         System.out.println("Bitstring length: " + bitString.length());
         System.out.println("Bitstring: " + bitString);
+
+        // generate byte array
+        byte[] bytes = new byte[bitString.length() / 8];
+        for (int i = 0; i < bitString.length(); i += 8) {
+            bytes[i / 8] = (byte) Integer.parseInt(bitString.substring(i, i + 8), 2);
+        }
+
+        // write byte array to file
+        IOUtility.writeBytes("resources/output.dat", bytes);
+    }
+    
+    public static void Decrypt(){
+        
     }
 
     private static void generateCodes(HuffmanNode node, String code, Map<Character, String> huffmanCodes) {

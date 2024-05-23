@@ -16,9 +16,25 @@ public class IOUtility {
         }
     }
     
-    public static void writeLines(String fileName, String[] lines) {
+    public static void writeLines(String fileName, String[] lines, String delimiter) {
         try {
-            Files.write(Paths.get(fileName), String.join("\n", lines).getBytes());
+            Files.write(Paths.get(fileName), String.join(delimiter, lines).getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public static void writeBytes(String fileName, byte[] bytes) {
+        try {
+            Files.write(Paths.get(fileName), bytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public static byte[] readBytes(String fileName) {
+        try {
+            return Files.readAllBytes(Paths.get(fileName));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
