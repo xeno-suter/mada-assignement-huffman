@@ -54,6 +54,20 @@ public class Main {
         
         // write huffman table
         IOUtility.writeLines("resources/dec_tab.txt", huffmanCodes.entrySet().stream().map(s -> s.getKey() + ":" + s.getValue()).toArray(String[]::new));
+
+        // encode text to bitstring
+        StringBuilder bitString = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            bitString.append(huffmanCodes.get(c));
+        }
+
+        // extend bitstring with 1 and 0s to be a multiple of 8
+        bitString.append('1');
+        while (bitString.length() % 8 != 0) {
+            bitString.append('0');
+        }
+        System.out.println("Bitstring length: " + bitString.length());
+        System.out.println("Bitstring: " + bitString);
     }
 
     private static void generateCodes(HuffmanNode node, String code, Map<Character, String> huffmanCodes) {
