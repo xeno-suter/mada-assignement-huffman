@@ -15,4 +15,12 @@ public class IOUtility {
             throw new RuntimeException(e);
         }
     }
+    
+    public static void writeLines(String fileName, String[] lines) {
+        try {
+            Files.write(Paths.get(fileName), String.join("\n", lines).getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
